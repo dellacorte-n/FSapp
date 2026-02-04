@@ -4,3 +4,4 @@ scipy
 streamlit
 matplotlib
 altair
+streamlit-nightly
