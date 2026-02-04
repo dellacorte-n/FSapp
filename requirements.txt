@@ -5,3 +5,4 @@ streamlit
 matplotlib
 altair
 streamlit-nightly
+openpyxl
