@@ -168,11 +168,11 @@ def main():
             all_samples.append((force_size_data[force_column], mean_size, std_dev_size, sample_name))
 
         # Input for the minimum row number to read
-        min_row = st.number_input(f"Enter the minimum row number to read for {sample_name}", min_value=1, value=3, step=1, key=f"min_row_{i}")
+        min_row = st.number_input(f"Enter the minimum row number to read for {sample_name}", min_value=1, value=1, step=1, key=f"min_row_{i}")
         st.session_state[f'min_row_{sample_name}'] = min_row  # Store in session state
 
         # Input for the maximum row number to read
-        max_row = st.number_input(f"Enter the maximum row number to read for {sample_name}", min_value=1, value=32, step=1, key=f"max_row_{i}")
+        max_row = st.number_input(f"Enter the maximum row number to read for {sample_name}", min_value=1, value=30, step=1, key=f"max_row_{i}")
         st.session_state[f'max_row_{sample_name}'] = max_row  # Store in session state
 
     # Run Cumulative Simulation
@@ -258,4 +258,5 @@ def main():
             st.pyplot(fig_bins)
 
 if __name__ == "__main__":
+
     main()
