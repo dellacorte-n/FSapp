@@ -56,14 +56,20 @@ def simulate_combined_sample(all_samples, num_samples=NUM_SAMPLES):
 
         # Convert to numeric and handle errors
         force_values = pd.to_numeric(force_data, errors='coerce').dropna()
-        
+
         # Check if force_values is empty after conversion
         if force_values.empty:
             st.error(f"The selected force data column for {sample_name} contains no valid numeric data.")
             continue  # Skip this sample
 
-        mean_force = np.mean(force_values)
-        std_dev_force = np.std(force_values)
+        # Use only the rows specified by min_row and max_row
+        start_row = st.session_state[f'min_row_{sample_name}'] - 1  # Adjust for zero-indexing
+        end_row = st.session_state[f'max_row_{sample_name}']
+        selected_force_values = force_values.iloc[start_row:end_row]
+
+        # Calculate mean and std deviation of the selected force values
+        mean_force = np.mean(selected_force_values)
+        std_dev_force = np.std(selected_force_values)
 
         if std_dev_force == 0:
             st.error(f"The standard deviation of the force data for {sample_name} is zero. Please provide varied data.")
@@ -90,7 +96,7 @@ def simulate_combined_sample(all_samples, num_samples=NUM_SAMPLES):
 
         statistics_data.append({
             "Sample Name": sample_name,
-            "Mean Rupture Force (mN)": round(mean_force, 2),
+            "Mean Rupture Force (mN)": round(mean_force, 2),  # Use the mean of the selected force values
             "Rupture Force StDev (mN)": round(std_dev_force, 2),
             "Mean Fracture Strength (MPa)": round(mean_stress, 2),
             "Fracture Strength StDev (MPa)": round(std_dev_stress, 2),
@@ -147,12 +153,11 @@ def main():
         force_size_file = st.file_uploader(f"Upload the Excel File containing Rupture Force measurements for {sample_name}", type=["xlsx"], key=f"force_size_file_{i}")
 
         if force_size_file:
-            # Read the uploaded Excel file up to the specified row
-            force_size_data = pd.read_excel(force_size_file)
+            # Read the uploaded Excel file
+            force_size_data = pd.read_excel(force_size_file, header=0)
 
             # Display column selection for force and size
             st.write("Excel file preview:")
-            # Set the height to show more rows
             st.dataframe(force_size_data, height=300)  # Adjust height to fit more rows
 
             # Select columns for force and size
@@ -162,9 +167,13 @@ def main():
             # Store the data for cumulative simulation
             all_samples.append((force_size_data[force_column], mean_size, std_dev_size, sample_name))
 
+        # Input for the minimum row number to read
+        min_row = st.number_input(f"Enter the minimum row number to read for {sample_name}", min_value=1, value=3, step=1, key=f"min_row_{i}")
+        st.session_state[f'min_row_{sample_name}'] = min_row  # Store in session state
 
         # Input for the maximum row number to read
-        max_row = st.number_input(f"Enter the maximum row number to read for {sample_name} - keep 32 for Bham files", min_value=1, value=32, step=1, key=f"max_row_{i}")
+        max_row = st.number_input(f"Enter the maximum row number to read for {sample_name}", min_value=1, value=32, step=1, key=f"max_row_{i}")
+        st.session_state[f'max_row_{sample_name}'] = max_row  # Store in session state
 
     # Run Cumulative Simulation
     if st.button("Run Simulation"):
